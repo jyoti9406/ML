@@ -1,0 +1,86 @@
+# ============================================================
+# Multimodal Negative Emotion Recognition - Config
+# ============================================================
+
+project:
+  name: "MultiModal Emotion Recognition"
+  version: "1.0.0"
+  seed: 42
+
+# ── Emotion Classes ──────────────────────────────────────────
+classes:
+  - anger
+  - fear
+  - sadness
+  - disgust
+num_classes: 4
+
+# ── Dataset Paths ────────────────────────────────────────────
+data:
+  eeg_csv: "data/raw/emotions.csv"          # DEAP / SEED CSV export
+  face_dir: "data/raw/facial/"              # FER2013 / CK+ root folder
+  processed_dir: "data/processed/"
+  test_size: 0.2
+  val_size: 0.1
+
+# ── EEG Preprocessing ────────────────────────────────────────
+eeg:
+  sampling_rate: 128           # Hz  (DEAP = 128 Hz)
+  lowcut: 0.5                  # Band-pass low  (Hz)
+  highcut: 45.0                # Band-pass high (Hz)
+  filter_order: 5
+  n_fft: 256
+  seq_len: 128                 # time-steps fed to LSTM
+  n_features: 32               # EEG channels / feature width
+
+# ── Image Preprocessing ──────────────────────────────────────
+face:
+  img_size: 48
+  channels: 1                  # grayscale; set 3 for RGB
+  augment: true
+
+# ── CNN Architecture ─────────────────────────────────────────
+cnn:
+  filters: [32, 64, 128]
+  kernel_size: 3
+  pool_size: 2
+  dropout: 0.4
+  embedding_dim: 256
+
+# ── LSTM Architecture ────────────────────────────────────────
+lstm:
+  hidden_size: 128
+  num_layers: 2
+  dropout: 0.3
+  bidirectional: true
+  embedding_dim: 256
+
+# ── Fusion / Classifier ──────────────────────────────────────
+fusion:
+  method: "attention"          # "concat" | "attention"
+  hidden_dim: 256
+  dropout: 0.5
+
+# ── Training ─────────────────────────────────────────────────
+training:
+  epochs: 50
+  batch_size: 32
+  learning_rate: 1.0e-3
+  weight_decay: 1.0e-4
+  scheduler: "cosine"          # "step" | "cosine" | "plateau"
+  patience: 10                 # early stopping
+  clip_grad_norm: 1.0
+  device: "auto"               # "cpu" | "cuda" | "auto"
+
+# ── Optuna Hyperparameter Tuning ─────────────────────────────
+tuning:
+  n_trials: 30
+  timeout: 3600                # seconds
+  metric: "val_f1"
+  direction: "maximize"
+
+# ── Paths ────────────────────────────────────────────────────
+paths:
+  checkpoints: "checkpoints/"
+  logs: "logs/"
+  results: "results/"
